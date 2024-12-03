@@ -33,7 +33,7 @@
         <div class="m-1">
             <template x-for="m in $store.mlist.members">
                 <div class="m-2">
-                    <span x-text="m.id +' - '+ m.alive+ ' - ' + m.retry + ' - ' + m.open "></span>
+                    <span x-text="m.id + ':' + m.connId +' - '+ m.alive+ ' - ' + m.retry + ' - ' + m.open "></span>
                     <button class="btn btn-info" @click="m.disconect()">x</button>
                 </div>                                
             </template>
@@ -97,7 +97,7 @@
                 else if (a.k < b.k) return -1;
                 else return 0;
             }).map(e=> {
-                if((nowMs() - e.v )/1000 <10)
+                if((nowMs() - e.v )/1000 <1)
                     return {k:e.k, v: 0}
                 return {k:e.k, v: (nowMs() - e.v )/1000}
             });
@@ -125,7 +125,8 @@
                     alive : e.extra.alive,
                     retry : e.extra.retry,
                     open : e.extra.open,
-                    disconect : e.extra.disconnect
+                    disconect : e.extra.disconnect,
+                    connId : e.connId,
                 }
             })
             mlist.ml = u.members.getAllMemberList().length;
@@ -166,7 +167,7 @@
         let i = 0;
         setInterval(() => {
             // i++;
-            // u.set("id_"+u.myUserUUID, nowMs() )
+            u.set("id_"+u.myUserUUID, nowMs() )
             // u.set("id_"+u.localId, i)
         }, 1000);
     }
