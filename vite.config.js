@@ -6,14 +6,16 @@ export default defineConfig({
   server: {
     port: 8080,
   },
-  build: {
-    lib: {
-      entry: resolve(__dirname, "lib/main.js"),
-      name: "MyLib",
-      fileName: "ukvdb",
-    },
-    rollupOptions: {
-      output: {},
-    },
-  },
+  build: { minify: false },
 });
+
+// build: {
+//   lib: {
+//     entry: resolve(__dirname, "lib/main.js"),
+//     name: "MyLib",
+//     fileName: "ukvdb",
+//   },
+//   rollupOptions: {
+//     output: {},
+//   },
+// },
