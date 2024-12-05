@@ -18,13 +18,13 @@
 
 <body x-data="{remoteId:''}" class="container-fluid p-3">
     <div>
-        <div>
-            v1.0
-            <input x-model="remoteId" type="text" @keyup.enter="()=>u.join(remoteId)">
-            <button id="join" @click="()=>u.join(remoteId)">join</button>
+        <div>v1.3
+            <input x-model="remoteId" type="text" @keyup.enter="$store.join(remoteId)">
+            <button id="join" @click="$store.join(remoteId)">join</button>
             <span>id: </span>
             <span x-text="$store.mlist.id"></span>
             <span x-text="$store.mlist.stat"></span>
+            <button class="btn btn-info" @click="$store.mlist.u.members.quit()">x</button>
         </div>
         <div id="d2" class="border" style="width: 100%; height: 60vh;"> </div>
         <div class="m-1">
@@ -49,7 +49,15 @@
         window.u = u
         let alpineData = Alpine.store('mlist')
         alpineData.id = u.myUserUUID
+        alpineData.u = u;
         document.title = u.myUserUUID
+        alpineData.join = (id)=>{
+            try {
+                u.join(id)                
+            } catch (error) {
+                alert(error)
+            }
+        }
         const setStatic = () => {
             let stat = u.getStatistics()
             alpineData.stat = `nodes=${u.members.getAllMemberList().length}, maxDis=${stat.maxDistance}`
@@ -70,20 +78,20 @@
         window.two = SetTwo(document.getElementById("d2"), u)
 
 
-        if (getBang() == null) {
-            let _join_with_starter = setInterval(async () => {
-                if (u.members.getConnMembers().length == 0) {
-                    try {
-                        await u.join("main")
-                        clearInterval(_join_with_starter)
-                    } catch (error) {
-                        console.debug(error)
-                    }
-                } else {
-                    clearInterval(_join_with_starter)
-                }
-            }, 1000 * 5);
-        }
+        // if (getBang() == null) {
+        //     let _join_with_starter = setInterval(async () => {
+        //         if (u.members.getConnMembers().length == 0) {
+        //             try {
+        //                 await u.join("main")
+        //                 clearInterval(_join_with_starter)
+        //             } catch (error) {
+        //                 console.debug(error)
+        //             }
+        //         } else {
+        //             clearInterval(_join_with_starter)
+        //         }
+        //     }, 1000 * 5);
+        // }
         function getBang() {
             if (location.href.indexOf("#") < 0) {
                 return null
