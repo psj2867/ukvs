@@ -1,0 +1,151 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+
+<body x-data="{remoteId:''}" class="container-fluid m-3">
+    <div>
+        <input x-model="remoteId" type="text" @keyup.enter="()=>u.join(remoteId)">
+        <button id="join" @click="()=>u.join(remoteId)">join</button>
+        <span>id: </span>
+        <span x-text="$store.mlist.id"></span>                 
+    </div>
+    <div>        
+        <span>maxDis: </span>
+        <span x-text="$store.mlist.distance"></span>
+        <span> - </span>
+        <span>nodes: </span>
+        <span x-text="$store.mlist.ml"></span>               
+        <span> - </span>
+        <span>msgCount: </span>
+        <span x-text="$store.mlist.stat.msgCount"></span>                   
+        <span> - </span>          
+        <span>meanMsgCount: </span>
+        <span x-text="$store.mlist.stat.meanMsgCount"></span>msg/s   
+    </div>
+    <div>
+        <div class="m-1">
+            <template x-for="m in $store.mlist.members">
+                <div class="m-2">
+                    <span x-text="m.id + ':' + m.connId +' - '+ m.alive+ ' - ' + m.retry + ' - ' + m.open "></span>
+                    <button class="btn btn-info" @click="m.disconect()">x</button>
+                </div>                                
+            </template>
+        </div>
+    </div>
+    <div>
+        <textarea x-model="$store.mlist.text" 
+        x-init="$watch('$store.mlist.text', v => $store.mlist.set(v))"
+        ></textarea>
+    </div>
+</body>
+<script type="module">
+    import { f1, nowMs } from "/lib/util.js"
+    f1()
+
+    import { Ukvdb } from "/lib/ukvdb.js"
+
+    async function toplevel() {
+        console.info("start module")
+        let u = await new Ukvdb(getBang()).init()
+        window.u = u
+
+        let mlist = Alpine.store('mlist')
+        window.mlist = mlist
+
+        mlist.id = u.myUserUUID
+        mlist.set = (t)=>{
+            u.set("text", t)
+        }
+        
+        u.storage.on("text", (k, rec) => {
+            if(rec.user != u.myUserUUID){
+                mlist.text = rec.data
+            }
+        })   
+        u.storage.on(".*", (d, k) => {  
+            setStatic();                
+        })   
+        u.storage.onSpecial(".*", (d, k) => {  
+            setStatic();                
+        })   
+        const setStatic = ()=>{            
+            let stat = u.getStatistics()
+            mlist.distance = stat.maxDistance;
+            mlist.stat = {
+                msgCount : stat.sendCnt, 
+                meanMsgCount : stat.sendMmc
+            }
+        }
+        const updateMembers = ()=>{
+            mlist.members = u.members.getConnMembers(false, false).map((e)=>{
+                return {
+                    id: e.userUUID,
+                    alive : e.extra.alive,
+                    retry : e.extra.retry,
+                    open : e.extra.open,
+                    disconect : e.extra.disconnect,
+                    connId : e.connId,
+                }
+            })
+            mlist.ml = u.members.getAllMemberList().length;
+
+        }
+        u.members.onConnMember((evttype, id,record) => {   
+            // console.info(evttype, id,record)              
+            updateMembers();
+            setStatic();
+        })  
+        if(getBang()==null){
+            let _join_with_starter = setInterval(async () => {
+                if(u.members.getConnMembers().length == 0) {
+                    try {
+                        await u.join("main")
+                        clearInterval(_join_with_starter)
+                    } catch (error) {
+                        console.debug(error)                    
+                    }
+                }else{
+                    clearInterval(_join_with_starter)
+                }
+            },1000*5);
+        }
+    }
+    toplevel();
+
+</script>
+<script>
+    document.addEventListener('alpine:init', () => {
+        console.info("alpine start")
+        Alpine.store('mlist', {            
+            stat : {
+                msgCount : 0, 
+                meanMsgCount : 0
+            }
+        })
+    })
+    function draw(delimeter = "---"){
+        let conns = u.storage.find("\\$conn_.*")
+        let res = new Set()
+        for (const conn of conns) {
+            let k = conn.key.slice("$conn_".length)
+            if( u.members.getAllMembers().map((e)=>e[0]).indexOf(k) < 0 ) continue
+            for (const t of conn.data) {
+                if( u.members.getAllMembers().map((e)=>e[0]).indexOf(t) < 0 ) continue
+                let d = [k,t].sort()
+                res.add(`${d[0]} <--> ${d[1]}`)
+            }
+        }
+        let resStr = [...res].join("\n")
+        console.info(resStr)
+        return resStr
+    }
+
+</script>
+</html>
