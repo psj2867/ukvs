@@ -60,7 +60,16 @@
     import { Chat } from "/lib/sample/chat.js"
     import { SetTwo } from "/lib/sample/2d.js"
     async function topLevel() {
-        let u = await new Ukvdb(getBang()).init()
+        let u = await new Ukvdb(getBang(), {rtc_config:{
+        iceServers: [
+          { url: "stun:stun.l.google.com:19302" },
+          {
+            url: "turn:n2.psj2867.com:3478",
+            username: "user1",
+            credential: "user1",
+          },
+        ],
+      }}).init()
         window.u = u
         let alpineData = Alpine.store('mlist')
         alpineData.id = u.myUserUUID

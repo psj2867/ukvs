@@ -107,20 +107,20 @@
         u.set("test_set"+u.myUserUUID, u.myUserUUID)
 
 
-        // if (getBang() == null) {
-        //     let _join_with_starter = setInterval(async () => {
-        //         if (u.members.getConnMembers().length == 0) {
-        //             try {
-        //                 await u.join("main")
-        //                 clearInterval(_join_with_starter)
-        //             } catch (error) {
-        //                 console.debug(error)
-        //             }
-        //         } else {
-        //             clearInterval(_join_with_starter)
-        //         }
-        //     }, 1000 * 5);
-        // }
+        if (getBang() == null) {
+            let _join_with_starter = setInterval(async () => {
+                if (u.members.getConnMembers().length == 0) {
+                    try {
+                        await u.join("main")
+                        clearInterval(_join_with_starter)
+                    } catch (error) {
+                        console.debug(error)
+                    }
+                } else {
+                    clearInterval(_join_with_starter)
+                }
+            }, 1000 * 5);
+        }
         function getBang() {
             if (location.href.indexOf("#") < 0) {
                 return null
