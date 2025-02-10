@@ -49,11 +49,11 @@
     import { f1, nowMs } from "/lib/util.js"
     f1()
 
-    import { Ukvdb } from "/lib/ukvdb.js"
+    import { Ukvs } from "/lib/ukvs.js"
 
     async function toplevel() {
         console.info("start module")
-        let u = await new Ukvdb(getBang()).init()
+        let u = await new Ukvs(getBang()).init()
         window.u = u
 
         let mlist = Alpine.store('mlist')

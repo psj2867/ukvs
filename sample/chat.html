@@ -56,11 +56,11 @@
     import { f1, nowMs, getRtcType } from "/lib/util.js"
     
 
-    import { Ukvdb } from "/lib/ukvdb.js"
+    import { Ukvs } from "/lib/ukvs.js"
     import { Chat } from "/lib/sample/chat.js"
     import { SetTwo } from "/lib/sample/2d.js"
     async function topLevel() {
-        let u = await new Ukvdb(getBang(), {rtc_config:{
+        let u = await new Ukvs(getBang(), {rtc_config:{
         iceServers: [
           { url: "stun:stun.l.google.com:19302" },
           {

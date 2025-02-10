@@ -13,7 +13,7 @@ export default defineConfig({
 //   lib: {
 //     entry: resolve(__dirname, "lib/main.js"),
 //     name: "MyLib",
-//     fileName: "ukvdb",
+//     fileName: "ukvs",
 //   },
 //   rollupOptions: {
 //     output: {},

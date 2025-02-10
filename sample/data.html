@@ -50,10 +50,10 @@
     import { f1, nowMs, getRtcType } from "/lib/util.js"
     
 
-    import { Ukvdb } from "/lib/ukvdb.js"
+    import { Ukvs } from "/lib/ukvs.js"
     import { SetTwo } from "/lib/sample/2d.js"
     async function topLevel() {
-        let u = await new Ukvdb(getBang()).init()
+        let u = await new Ukvs(getBang()).init()
         window.u = u
         let alpineData = Alpine.store('mlist')
         alpineData.id = u.myUserUUID

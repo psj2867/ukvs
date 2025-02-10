@@ -1,4 +1,4 @@
-# ukvdb - unreliable key value database
+# ukvs - unreliable key value database
 
 etcd 또는 zookeeper 와 비슷한 웹 기반의 분산 키-값 저장소입니다  
 특징으로는 더욱 믿음직스럽지 못하고 신뢰할 수 없습니다  
@@ -6,7 +6,7 @@ webrtc를 기반으로 gossip protocol을 사용합니다
 최소한의 연결로 많은 노드와 연결되는 것이 목적입니다
 
 ```
-let u = await new Ukvdb().init()
+let u = await new Ukvs().init()
 u.join('id')
 u.set('key', {value:"value"})
 u.get('key')
