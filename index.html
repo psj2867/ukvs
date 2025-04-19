@@ -1,4 +1,4 @@
-<html lang="en">
+<html lang="ko">
 
 <head>
     <meta charset="UTF-8">
@@ -16,7 +16,7 @@
     </style>
 </head>
 
-<body x-data="{remoteId:''}" class="container-fluid p-3">
+<body x-data="{remoteId:'' }" class="container-fluid p-3">
     <div>
         <div>v1.3
             <input x-model="remoteId" type="text" @keyup.enter="$store.mlist.join(remoteId)">
@@ -26,20 +26,26 @@
             <span x-text="$store.mlist.stat"></span>
             <button class="btn btn-info" @click="$store.mlist.u.members.quit()">x</button>
         </div>
-        <div class="m-1 border p-1">
-            <span class="border">members</span>
+        <div id="d2" class="border" style="width: 100%; height: 50vh;"> </div>
+        <div>
+            <div class="border  overflow-auto" x-ref="list" style="height: 15vh;">
+                <template x-for="c in $store.mlist.chats" :key="c.id">
+                    <div class="m-2" >                        
+                        <span class="border" x-text="c.user"></span>
+                        <span class="" x-text="c.text"></span>
+                    </div>
+                </template>
+            </div>
+            <div>
+                <input type="text" x-data="{chat:''}" x-model="chat" @keyup.enter="$store.mlist.chat.chat(chat); chat='';" x-init="$watch('$store.mlist.chats', e=>{ $nextTick( ()=>{ $refs.list.scrollTop = $refs.list.scrollHeight; }) })">
+                
+            </div>
+        </div>
+        <div class="m-1">
             <template x-for="m in $store.mlist.members">
                 <div class="m-2">
                     <span x-text="m.info"></span>
                     <button class="btn btn-info" @click="m.disconect()">x</button>
-                </div>
-            </template>
-        </div>
-        <div class="m-1 border p-1">
-            <span class="border">data</span>
-            <template x-for="m in $store.mlist.data" :key="m.key">
-                <div class="m-2">
-                    <span x-text="m.text"></span>
                 </div>
             </template>
         </div>
@@ -51,19 +57,29 @@
     
 
     import { Ukvs } from "/lib/ukvs.js"
+    import { Chat } from "/lib/sample/chat.js"
     import { SetTwo } from "/lib/sample/2d.js"
     async function topLevel() {
-        let u = await new Ukvs(getBang()).init()
+        let u = await new Ukvs(getBang(), {rtc_config:{
+            iceServers: [
+            { url: "stun:stun.l.google.com:19302" },
+            {
+                url: "turn:n2.psj2867.com:3478",
+                username: "user1",
+                credential: "user1",
+            },
+            ],
+        }}).init()
         window.u = u
         let alpineData = Alpine.store('mlist')
         alpineData.id = u.myUserUUID
         alpineData.u = u;
         document.title = u.myUserUUID
-        alpineData.join = (id)=>{
+        alpineData.join = async (id)=>{
             try {
-                u.join(id)                
+                await u.join(id)                
             } catch (error) {
-                alert(error)
+                alert(JSON.stringify(error))
             }
         }
         const setStatic = () => {
@@ -71,7 +87,7 @@
             alpineData.stat = `nodes=${u.members.getAllMemberList().length}, maxDis=${stat.maxDistance}`
         }
         u.members.onConnMember((evttype, id, record) => {
-            alpineData.members = u.members.getConnMembers(false, true).map((m) => {
+            alpineData.members = u.members.getConnMembers(false, false).map((m) => {
                 return {
                     info: `${m.userUUID}:${m.connId}:${getRtcType(m.conn?.peerConnection)}`,
                     disconect: m.extra.disconnect,
@@ -81,46 +97,12 @@
         });
         u.members.onMember((type, id, record) => {
             setStatic();
-        });
-        const setData = () => {
-            alpineData.data = u.storage.find(".*").sort(( a, b ) =>{
-                if ( a.key < b.key ){
-                    return -1;
-                }
-                if ( a.key > b.key ){
-                    return 1;
-                }
-                return 0;
-            }).map((r)=>{
-                return {
-                    text: `${r.key} - ${JSON.stringify(r.data)}`,
-                    key : r.key
-                }
-            })
-        }
-        u.storage.on(".*",(key, record) => {
-            setData();
         })
-        u.storage.onSpecial(".*",(key, record) => {
-            setData();
-        })
-        u.set("test_set"+u.myUserUUID, u.myUserUUID)
 
+        alpineData.chats = []
+        window.chat = new Chat(u, alpineData.chats)
+        alpineData.chat = window.chat
 
-        if (getBang() == null) {
-            let _join_with_starter = setInterval(async () => {
-                if (u.members.getConnMembers().length == 0) {
-                    try {
-                        await u.join("main")
-                        clearInterval(_join_with_starter)
-                    } catch (error) {
-                        console.debug(error)
-                    }
-                } else {
-                    clearInterval(_join_with_starter)
-                }
-            }, 1000 * 5);
-        }
         function getBang() {
             if (location.href.indexOf("#") < 0) {
                 return null
@@ -128,6 +110,8 @@
                 return location.href.slice(location.href.indexOf("#") + 1)
             }
         }
+        window.two = SetTwo(document.getElementById("d2"), u)
+
     }
     topLevel()
 </script>
